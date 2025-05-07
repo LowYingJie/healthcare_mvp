@@ -3,9 +3,9 @@
 const mongoose = require('mongoose');
 
 const MessageSchema = new mongoose.Schema({
-  senderId: String,
-  receiverId: String,
-  message: String,
+  roomId: { type: String, required: true }, // unique chat room ID (e.g., patient-doctor pair)
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  message: { type: String, required: true },
   timestamp: { type: Date, default: Date.now }
 });
 
