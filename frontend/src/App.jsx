@@ -14,7 +14,7 @@ function App() {
         <Route path="/" element={<DoctorList />} /> {/* Route to the doctor list */}
         <Route path="/book/:doctorId" element={<BookAppointment />} /> {/* Route for booking appointment */}
         <Route path="/appointments" element={<Appointments />} /> {/* Route for viewing appointments */}
-       
+       <Route path="/chat/:doctorId" element={<PrivateChat />} /> {/* Chat route with dynamic doctor ID */}
       </Routes>
     </Router>
   );
