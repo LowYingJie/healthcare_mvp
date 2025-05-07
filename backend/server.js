@@ -1,38 +1,24 @@
-// backend/server.js
+const Message = require('./models/Message'); // add this at the top if storing messages
 
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
-const http = require('http');
-const { Server } = require('socket.io');
-
-const authRoutes = require('./routes/auth');
-const appointmentRoutes = require('./routes/appointment');
-
-const app = express();
-const server = http.createServer(app); // ⬅️ Create HTTP server for Socket.IO
-
-const io = new Server(server, {
-  cors: { origin: '*' }
-});
-
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-app.use('/api/appointments', appointmentRoutes);
-
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => server.listen(5000, () => console.log('Server running on port 5000')))
-  .catch(err => console.error(err));
-
-// 🔌 Socket.IO Chat Logic
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('send_message', (data) => {
-    io.emit('receive_message', data); // broadcast to all clients
+  // Join a private room
+  socket.on('join_room', async ({ roomId }) => {
+    socket.join(roomId);
+    console.log(`User joined room: ${roomId}`);
+
+    // Optional: Load previous messages for the room
+    const messages = await Message.find({ roomId }).sort('timestamp');
+    socket.emit('load_messages', messages);
+  });
+
+  // Handle sending messages to a room
+  socket.on('send_message', async ({ roomId, senderId, message }) => {
+    const newMsg = new Message({ roomId, senderId, message });
+    await newMsg.save();
+
+    io.to(roomId).emit('receive_message', newMsg); // ✅ only emit to the room
   });
 
   socket.on('disconnect', () => {
